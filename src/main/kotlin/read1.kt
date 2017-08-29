@@ -48,7 +48,7 @@ fun main(args: Array<String>) {
         }
         if (lineCells.isEmpty()) break
         it.append(lineCells.joinToString(","))
-        it.append("\r\b")
+        it.append("\r\n")
       }
     }
   }
