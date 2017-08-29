@@ -9,16 +9,17 @@ import java.nio.file.Paths
 
 
 fun main(args: Array<String>) {
+  val csvEncode = Charset.forName("Shift_JIS")
   var sheetList = listOf("東京")
 
   val workbook = WorkbookFactory.create(File("./data/sample1.xlsx"))
 
   for(sheetName in sheetList) {
     val sheet = workbook.getSheet(sheetName)
-    val csvPath:String = "./out/data/" + sheetName + ".csv"
+    val csvPath = "./out/data/$sheetName.csv"
     println(csvPath)
 
-    Files.newBufferedWriter(Paths.get(csvPath), Charset.forName("Shift_JIS")).use<BufferedWriter, Unit> {
+    Files.newBufferedWriter(Paths.get(csvPath), csvEncode).use<BufferedWriter, Unit> {
       for (i in 0..10) {
         var row: Row? = sheet.getRow(i)
         var firstCell: Cell = row?.getCell(0) ?: break
@@ -27,11 +28,22 @@ fun main(args: Array<String>) {
         for (j in 0..10) {
           var cell: Cell = row.getCell(j) ?: break
 
-          if(cell.cellType == Cell.CELL_TYPE_NUMERIC){
-            lineCells.add(cell.numericCellValue.toString())
-          }
-          if(cell.cellType == Cell.CELL_TYPE_STRING){
-            lineCells.add(cell.stringCellValue)
+          println("$i, $j : " + cell.cellType)
+          when (cell.cellType) {
+            Cell.CELL_TYPE_NUMERIC -> lineCells.add(cell.numericCellValue.toString())
+            Cell.CELL_TYPE_STRING -> lineCells.add(cell.stringCellValue)
+            Cell.CELL_TYPE_FORMULA -> {
+              println(String.format("Formula:=%s cachedType:%d %s",
+                  cell.cellFormula,
+                  cell.cachedFormulaResultType,
+                  cell.numericCellValue.toString()
+              ))
+
+              when (cell.cachedFormulaResultType) {
+                Cell.CELL_TYPE_NUMERIC -> lineCells.add(cell.numericCellValue.toString())
+                Cell.CELL_TYPE_STRING -> lineCells.add(cell.stringCellValue)
+              }
+            }
           }
         }
         if (lineCells.isEmpty()) break
