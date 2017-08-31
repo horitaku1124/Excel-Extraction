@@ -16,7 +16,7 @@ val timeFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss")
 fun main(args: Array<String>) {
 
   val csvEncode = Charset.forName("Shift_JIS")
-  var sheetList = listOf("東京", "渋谷")
+  var sheetList = listOf("新宿")
 
   val workbook = WorkbookFactory.create(File("./data/sample1.xlsx"))
 
@@ -44,7 +44,7 @@ fun exportSheetToCsv(writer:BufferedWriter, sheet: Sheet) {
     }
   }
   println("headerLimit=" + headerLimit)
-  for (i in 0..10) {
+  for (i in 0..65536) {
     var row: Row? = sheet.getRow(i)
     var firstCell: Cell = row?.getCell(0) ?: break
 
@@ -81,12 +81,6 @@ fun exportSheetToCsv(writer:BufferedWriter, sheet: Sheet) {
         }
         Cell.CELL_TYPE_STRING -> lineCells.add(cell.stringCellValue)
         Cell.CELL_TYPE_FORMULA -> {
-//          println(String.format("Formula:=%s cachedType:%d %s",
-//                  cell.cellFormula,
-//                  cell.cachedFormulaResultType,
-//                  cell.numericCellValue.toString()
-//          ))
-
           lineCells.add(cellParseToString(cell, cell.cachedFormulaResultType))
         }
       }
@@ -104,7 +98,26 @@ fun cellParseToString(cell: Cell, _type: Int?): String {
   var ret = ""
   val type = _type ?: cell.cellType
   when (type) {
-    Cell.CELL_TYPE_NUMERIC -> ret = cell.numericCellValue.toString()
+    Cell.CELL_TYPE_NUMERIC -> {
+      val numValue = cell.numericCellValue
+      var numString = numValue.toString()
+      if (DateUtil.isCellDateFormatted(cell)) {
+        val date = cell.dateCellValue
+
+        val hasTime = (numValue - numValue.toInt().toDouble()) > 0.0
+        val onlyTime = numValue < 1.0
+
+        val localDateTime = LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault())
+        if (onlyTime) {
+          numString = timeFormat.format(localDateTime)
+        } else if (hasTime) {
+          numString = dateTimeFormat.format(localDateTime)
+        } else {
+          numString = dateFormat.format(localDateTime)
+        }
+      }
+      return numString
+    }
     Cell.CELL_TYPE_STRING -> ret = cell.stringCellValue
   }
   return ret
