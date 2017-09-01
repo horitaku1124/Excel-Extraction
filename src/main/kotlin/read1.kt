@@ -2,6 +2,7 @@ import org.apache.poi.ss.format.CellFormat
 import org.apache.poi.ss.usermodel.*
 import java.io.BufferedWriter
 import java.io.File
+import java.io.FileInputStream
 import java.nio.charset.Charset
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -17,9 +18,9 @@ val timeFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss")
 fun main(args: Array<String>) {
 
   val csvEncode = Charset.forName("Shift_JIS")
-  var sheetList = listOf("新宿")
+  var sheetList = listOf("東京", "渋谷", "新宿")
 
-  val workbook = WorkbookFactory.create(File("./data/sample1.xlsx"))
+  val workbook = WorkbookFactory.create(FileInputStream("./data/sample1.xlsx"))
 
   for(sheetName in sheetList) {
     val sheet = workbook.getSheet(sheetName)
