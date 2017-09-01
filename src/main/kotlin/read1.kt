@@ -1,11 +1,12 @@
+import org.apache.poi.ss.format.CellFormat
 import org.apache.poi.ss.usermodel.*
 import java.io.BufferedWriter
 import java.io.File
 import java.nio.charset.Charset
 import java.nio.file.Files
 import java.nio.file.Paths
-import java.time.ZoneId
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 
@@ -44,6 +45,7 @@ fun exportSheetToCsv(writer:BufferedWriter, sheet: Sheet) {
     }
   }
   println("headerLimit=" + headerLimit)
+  var len = 0
   for (i in 0..65536) {
     var row: Row? = sheet.getRow(i)
     var firstCell: Cell = row?.getCell(0) ?: break
@@ -56,28 +58,10 @@ fun exportSheetToCsv(writer:BufferedWriter, sheet: Sheet) {
         continue
       }
 
-      println("$i, $j : " + cell.cellType)
+//      println("$i, $j : " + cell.cellType)
       when (cell.cellType) {
         Cell.CELL_TYPE_NUMERIC -> {
-          val numValue = cell.numericCellValue
-          if (DateUtil.isCellDateFormatted(cell)) {
-            val date = cell.dateCellValue
-//            println("date? = " + numValue)
-
-            val hasTime = (numValue - numValue.toInt().toDouble()) > 0.0
-            val onlyTime = numValue < 1.0
-
-            val localDateTime = LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault())
-            if (onlyTime) {
-              lineCells.add(timeFormat.format(localDateTime))
-            } else if (hasTime) {
-              lineCells.add(dateTimeFormat.format(localDateTime))
-            } else {
-              lineCells.add(dateFormat.format(localDateTime))
-            }
-          } else {
-            lineCells.add(numValue.toString())
-          }
+          lineCells.add(cellParseToString(cell))
         }
         Cell.CELL_TYPE_STRING -> lineCells.add(cell.stringCellValue)
         Cell.CELL_TYPE_FORMULA -> {
@@ -88,7 +72,9 @@ fun exportSheetToCsv(writer:BufferedWriter, sheet: Sheet) {
     if (lineCells.isEmpty()) break
     writer.append(lineCells.joinToString(","))
     writer.append("\r\n")
+    len++
   }
+  println("rows=" + len)
 }
 
 fun cellParseToString(cell: Cell): String {
@@ -114,6 +100,11 @@ fun cellParseToString(cell: Cell, _type: Int?): String {
           numString = dateTimeFormat.format(localDateTime)
         } else {
           numString = dateFormat.format(localDateTime)
+        }
+        if (BuiltinFormats.FIRST_USER_DEFINED_FORMAT_INDEX <= cell.cellStyle.dataFormat) {
+          val cellFormat = CellFormat.getInstance(cell.cellStyle.dataFormatString)
+          val cellFormatResult = cellFormat.apply(cell)
+          numString = cellFormatResult.text
         }
       }
       return numString
