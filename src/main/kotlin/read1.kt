@@ -9,52 +9,47 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
+
 val dateFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd")
 val dateTimeFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")
 val timeFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss")
+val csvEncode: Charset = Charset.forName("Shift_JIS")
 
 fun main(args: Array<String>) {
-
-  val csvEncode = Charset.forName("Shift_JIS")
-  val sheetList = listOf("東京", "渋谷", "新宿")
+  val sheetList = listOf("新宿")
+  val divideItems = 3
 
   val workbook = WorkbookFactory.create(FileInputStream("./data/sample1.xlsx"))
 
   for(sheetName in sheetList) {
     val sheet = workbook.getSheet(sheetName)
-    val csvPath = "./out/data/$sheetName.csv"
-    println(csvPath)
 
-    Files.newBufferedWriter(Paths.get(csvPath), csvEncode).use<BufferedWriter, Unit> {
-      exportSheetToCsv(it, sheet)
+    if (divideItems > 1) {
+      val csvPathFormat = "./out/data/$sheetName" + "_%d.csv"
+      exportSheetToCsvDivided(csvPathFormat, sheet, divideItems)
+    } else {
+      val csvPath = "./out/data/$sheetName.csv"
+      println(csvPath)
+      Files.newBufferedWriter(Paths.get(csvPath), csvEncode).use<BufferedWriter, Unit> {
+        exportSheetToCsv(it, sheet)
+      }
     }
   }
 }
 fun exportSheetToCsv(writer:BufferedWriter, sheet: Sheet) {
-  val headerCells =  mutableListOf<String>()
-  var headerLimit = 0
-  val row: Row = sheet.getRow(0) ?: return
-  for (i in 0..50) {
-    val cell: Cell? = row.getCell(i)
-    if (cell == null) {
-      headerCells.add("")
-    } else {
-      headerLimit = i
-      headerCells.add(cellParseToString(cell))
-    }
-  }
+  val headerCells = fetchHeader(sheet)
 
   writer.append(headerCells.joinToString(","))
   writer.append("\r\n")
 
-  println("headerLimit=" + headerLimit)
+  println("headerLimit=" + headerCells.size)
   var len = 0
   for (i in 1..65536) {
     val dataRow: Row? = sheet.getRow(i)
     dataRow?.getCell(0) ?: break
 
     val lineCells =  mutableListOf<String>()
-    for (j in 0 .. headerLimit) {
+    for (j in 0 .. headerCells.size) {
       val cell: Cell? = dataRow.getCell(j)
       if (cell == null) {
         lineCells.add("")
@@ -77,6 +72,81 @@ fun exportSheetToCsv(writer:BufferedWriter, sheet: Sheet) {
     len++
   }
   println("rows=" + len)
+}
+
+
+fun exportSheetToCsvDivided(csvPathFormat:String, sheet: Sheet, divideItem: Int) {
+  var writer: BufferedWriter? = null
+
+  val headerCells = fetchHeader(sheet)
+  println("headerLimit=" + headerCells.size)
+
+  var len = 0
+  var fileOffset = 0
+  for (i in 1..65536) {
+    if (writer == null) {
+      var csvPath = String.format(csvPathFormat, fileOffset)
+      println(csvPath)
+      writer = Files.newBufferedWriter(Paths.get(csvPath), csvEncode)
+
+      writer.append(headerCells.joinToString(","))
+      writer.append("\r\n")
+    }
+    val dataRow: Row? = sheet.getRow(i)
+    dataRow?.getCell(0) ?: break
+
+    val lineCells =  mutableListOf<String>()
+    for (j in 0 .. headerCells.size) {
+      val cell: Cell? = dataRow.getCell(j)
+      if (cell == null) {
+        lineCells.add("")
+        continue
+      }
+
+      when (cell.cellType) {
+        Cell.CELL_TYPE_NUMERIC -> {
+          lineCells.add(cellParseToString(cell))
+        }
+        Cell.CELL_TYPE_STRING -> lineCells.add(cell.stringCellValue)
+        Cell.CELL_TYPE_FORMULA -> {
+          lineCells.add(cellParseToString(cell, cell.cachedFormulaResultType))
+        }
+      }
+    }
+    if (lineCells.isEmpty()) break
+    writer?.append(lineCells.joinToString(","))
+    writer?.append("\r\n")
+    len++
+    if(len % divideItem == 0) {
+      writer?.close()
+      writer = null
+      fileOffset++
+    }
+  }
+  if (writer != null) {
+    writer.close()
+  }
+  println("rows=" + len)
+}
+
+fun fetchHeader(sheet: Sheet) : MutableList<String>{
+  val headerCells = mutableListOf<String>()
+  var headerLimit = 0
+  val row: Row = sheet.getRow(0) ?: return headerCells
+  for (i in 0..50) {
+    val cell: Cell? = row.getCell(i)
+    if (cell == null) {
+      headerCells.add("")
+    } else {
+      headerLimit = i
+      headerCells.add(cellParseToString(cell))
+    }
+  }
+  val retHeaderCells = mutableListOf<String>()
+  for(i in 0..headerLimit) {
+    retHeaderCells.add(headerCells.get(i))
+  }
+  return retHeaderCells
 }
 
 fun cellParseToString(cell: Cell): String {
