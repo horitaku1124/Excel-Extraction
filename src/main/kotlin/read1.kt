@@ -1,7 +1,6 @@
 import org.apache.poi.ss.format.CellFormat
 import org.apache.poi.ss.usermodel.*
 import java.io.BufferedWriter
-import java.io.File
 import java.io.FileInputStream
 import java.nio.charset.Charset
 import java.nio.file.Files
@@ -10,7 +9,6 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-
 val dateFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd")
 val dateTimeFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")
 val timeFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss")
@@ -18,7 +16,7 @@ val timeFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss")
 fun main(args: Array<String>) {
 
   val csvEncode = Charset.forName("Shift_JIS")
-  var sheetList = listOf("東京", "渋谷", "新宿")
+  val sheetList = listOf("東京", "渋谷", "新宿")
 
   val workbook = WorkbookFactory.create(FileInputStream("./data/sample1.xlsx"))
 
@@ -33,11 +31,11 @@ fun main(args: Array<String>) {
   }
 }
 fun exportSheetToCsv(writer:BufferedWriter, sheet: Sheet) {
-  var headerCells =  mutableListOf<String>()
+  val headerCells =  mutableListOf<String>()
   var headerLimit = 0
-  var row: Row = sheet.getRow(0) ?: return
+  val row: Row = sheet.getRow(0) ?: return
   for (i in 0..50) {
-    var cell: Cell? = row.getCell(i)
+    val cell: Cell? = row.getCell(i)
     if (cell == null) {
       headerCells.add("")
     } else {
@@ -45,21 +43,24 @@ fun exportSheetToCsv(writer:BufferedWriter, sheet: Sheet) {
       headerCells.add(cellParseToString(cell))
     }
   }
+
+  writer.append(headerCells.joinToString(","))
+  writer.append("\r\n")
+
   println("headerLimit=" + headerLimit)
   var len = 0
-  for (i in 0..65536) {
-    var row: Row? = sheet.getRow(i)
-    var firstCell: Cell = row?.getCell(0) ?: break
+  for (i in 1..65536) {
+    val dataRow: Row? = sheet.getRow(i)
+    dataRow?.getCell(0) ?: break
 
-    var lineCells =  mutableListOf<String>()
+    val lineCells =  mutableListOf<String>()
     for (j in 0 .. headerLimit) {
-      var cell: Cell? = row.getCell(j)
+      val cell: Cell? = dataRow.getCell(j)
       if (cell == null) {
         lineCells.add("")
         continue
       }
 
-//      println("$i, $j : " + cell.cellType)
       when (cell.cellType) {
         Cell.CELL_TYPE_NUMERIC -> {
           lineCells.add(cellParseToString(cell))
