@@ -37,14 +37,14 @@ fun main(args: Array<String>) {
   }
 }
 fun exportSheetToCsv(writer:BufferedWriter, sheet: Sheet) {
-  val headerCells = fetchHeader(sheet)
+  val headerCells = fetcHeader(sheet)
 
   writer.append(headerCells.joinToString(","))
   writer.append("\r\n")
 
   println("headerLimit=" + headerCells.size)
   var len = 0
-  for (i in 1..65536) {
+  for (i in 1 .. Int.MAX_VALUE) {
     val dataRow: Row? = sheet.getRow(i)
     dataRow?.getCell(0) ?: break
 
@@ -78,12 +78,12 @@ fun exportSheetToCsv(writer:BufferedWriter, sheet: Sheet) {
 fun exportSheetToCsvDivided(csvPathFormat:String, sheet: Sheet, divideItem: Int) {
   var writer: BufferedWriter? = null
 
-  val headerCells = fetchHeader(sheet)
+  val headerCells = fetcHeader(sheet)
   println("headerLimit=" + headerCells.size)
 
   var len = 0
   var fileOffset = 0
-  for (i in 1..65536) {
+  for (i in 1 .. Int.MAX_VALUE) {
     if (writer == null) {
       var csvPath = String.format(csvPathFormat, fileOffset)
       println(csvPath)
@@ -129,7 +129,7 @@ fun exportSheetToCsvDivided(csvPathFormat:String, sheet: Sheet, divideItem: Int)
   println("rows=" + len)
 }
 
-fun fetchHeader(sheet: Sheet) : MutableList<String>{
+fun fetcHeader(sheet: Sheet) : MutableList<String>{
   val headerCells = mutableListOf<String>()
   var headerLimit = 0
   val row: Row = sheet.getRow(0) ?: return headerCells
