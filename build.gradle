@@ -30,7 +30,12 @@ compileTestKotlin {
     kotlinOptions.jvmTarget = "1.8"
 }
 
-task execute(type:JavaExec) {
-    main = mainClass
-    classpath = sourceSets.main.runtimeClasspath
+apply plugin: 'application'
+
+mainClassName = 'Read1Kt'
+
+run {
+    if (project.hasProperty('args')) {
+        args project.args.split('\\s+')
+    }
 }

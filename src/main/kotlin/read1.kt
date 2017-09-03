@@ -16,10 +16,11 @@ val timeFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss")
 val csvEncode: Charset = Charset.forName("Shift_JIS")
 
 fun main(args: Array<String>) {
-  val sheetList = listOf("新宿")
-  val divideItems = 3
+  val config = Configuration(args)
+  val sheetList = config.sheets
+  val divideItems = config.divideItems
 
-  val workbook = WorkbookFactory.create(FileInputStream("./data/sample1.xlsx"))
+  val workbook = WorkbookFactory.create(FileInputStream(config.inputFile))
 
   for(sheetName in sheetList) {
     val sheet = workbook.getSheet(sheetName)
