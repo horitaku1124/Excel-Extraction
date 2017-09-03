@@ -37,7 +37,7 @@ fun main(args: Array<String>) {
   }
 }
 fun exportSheetToCsv(writer:BufferedWriter, sheet: Sheet) {
-  val headerCells = fetcHeader(sheet)
+  val headerCells = fetchHeader(sheet)
 
   writer.append(headerCells.joinToString(","))
   writer.append("\r\n")
@@ -56,15 +56,14 @@ fun exportSheetToCsv(writer:BufferedWriter, sheet: Sheet) {
         continue
       }
 
-      when (cell.cellType) {
-        Cell.CELL_TYPE_NUMERIC -> {
-          lineCells.add(cellParseToString(cell))
-        }
-        Cell.CELL_TYPE_STRING -> lineCells.add(cell.stringCellValue)
-        Cell.CELL_TYPE_FORMULA -> {
-          lineCells.add(cellParseToString(cell, cell.cachedFormulaResultType))
-        }
-      }
+      lineCells.add(
+          when (cell.cellType) {
+            Cell.CELL_TYPE_NUMERIC -> cellParseToString(cell)
+            Cell.CELL_TYPE_STRING -> cell.stringCellValue
+            Cell.CELL_TYPE_FORMULA -> cellParseToString(cell, cell.cachedFormulaResultType)
+            else -> ""
+          }
+      )
     }
     if (lineCells.isEmpty()) break
     writer.append(lineCells.joinToString(","))
@@ -78,7 +77,7 @@ fun exportSheetToCsv(writer:BufferedWriter, sheet: Sheet) {
 fun exportSheetToCsvDivided(csvPathFormat:String, sheet: Sheet, divideItem: Int) {
   var writer: BufferedWriter? = null
 
-  val headerCells = fetcHeader(sheet)
+  val headerCells = fetchHeader(sheet)
   println("headerLimit=" + headerCells.size)
 
   var len = 0
@@ -103,15 +102,14 @@ fun exportSheetToCsvDivided(csvPathFormat:String, sheet: Sheet, divideItem: Int)
         continue
       }
 
-      when (cell.cellType) {
-        Cell.CELL_TYPE_NUMERIC -> {
-          lineCells.add(cellParseToString(cell))
-        }
-        Cell.CELL_TYPE_STRING -> lineCells.add(cell.stringCellValue)
-        Cell.CELL_TYPE_FORMULA -> {
-          lineCells.add(cellParseToString(cell, cell.cachedFormulaResultType))
-        }
-      }
+      lineCells.add(
+          when (cell.cellType) {
+            Cell.CELL_TYPE_NUMERIC -> cellParseToString(cell)
+            Cell.CELL_TYPE_STRING -> cell.stringCellValue
+            Cell.CELL_TYPE_FORMULA -> cellParseToString(cell, cell.cachedFormulaResultType)
+            else -> ""
+          }
+      )
     }
     if (lineCells.isEmpty()) break
     writer?.append(lineCells.joinToString(","))
@@ -129,7 +127,7 @@ fun exportSheetToCsvDivided(csvPathFormat:String, sheet: Sheet, divideItem: Int)
   println("rows=" + len)
 }
 
-fun fetcHeader(sheet: Sheet) : MutableList<String>{
+fun fetchHeader(sheet: Sheet) : MutableList<String>{
   val headerCells = mutableListOf<String>()
   var headerLimit = 0
   val row: Row = sheet.getRow(0) ?: return headerCells
@@ -166,17 +164,14 @@ fun cellParseToString(cell: Cell, _type: Int?): String {
         val onlyTime = numValue < 1.0
 
         val localDateTime = LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault())
-        if (onlyTime) {
-          numString = timeFormat.format(localDateTime)
-        } else if (hasTime) {
-          numString = dateTimeFormat.format(localDateTime)
-        } else {
-          numString = dateFormat.format(localDateTime)
-        }
-        if (BuiltinFormats.FIRST_USER_DEFINED_FORMAT_INDEX <= cell.cellStyle.dataFormat) {
-          val cellFormat = CellFormat.getInstance(cell.cellStyle.dataFormatString)
-          val cellFormatResult = cellFormat.apply(cell)
-          numString = cellFormatResult.text
+        numString = when {
+          onlyTime -> timeFormat.format(localDateTime)
+          hasTime -> dateTimeFormat.format(localDateTime)
+          BuiltinFormats.FIRST_USER_DEFINED_FORMAT_INDEX <= cell.cellStyle.dataFormat -> {
+            val cellFormat = CellFormat.getInstance(cell.cellStyle.dataFormatString)
+            cellFormat.apply(cell).text
+          }
+          else -> dateFormat.format(localDateTime)
         }
       }
       return numString
