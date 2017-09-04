@@ -148,13 +148,8 @@ fun fetchHeader(sheet: Sheet) : MutableList<String>{
   return retHeaderCells
 }
 
-fun cellParseToString(cell: Cell): String {
-  return cellParseToString(cell, null)
-}
-fun cellParseToString(cell: Cell, _type: Int?): String {
-  var ret = ""
-  val type = _type ?: cell.cellType
-  when (type) {
+fun cellParseToString(cell: Cell, type: Int = cell.cellType): String {
+  return when (type) {
     Cell.CELL_TYPE_NUMERIC -> {
       val numValue = cell.numericCellValue
       var numString = numValue.toString()
@@ -175,9 +170,9 @@ fun cellParseToString(cell: Cell, _type: Int?): String {
           else -> dateFormat.format(localDateTime)
         }
       }
-      return numString
+      numString
     }
-    Cell.CELL_TYPE_STRING -> ret = cell.stringCellValue
+    Cell.CELL_TYPE_STRING -> cell.stringCellValue
+    else -> ""
   }
-  return ret
 }
