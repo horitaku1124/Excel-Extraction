@@ -1,6 +1,7 @@
 class Configuration(args: Array<String>) {
   var divideItems = 0
   var inputFile = ""
+  var outputDirectory = ""
   var sheets: List<String> = listOf()
 
   init {
@@ -16,6 +17,10 @@ class Configuration(args: Array<String>) {
           }
           "in" -> {
             inputFile = args[i + 1]
+            i++
+          }
+          "out" -> {
+            outputDirectory = args[i + 1]
             i++
           }
           "divide" -> {

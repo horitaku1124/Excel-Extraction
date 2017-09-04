@@ -19,6 +19,7 @@ fun main(args: Array<String>) {
   val config = Configuration(args)
   val sheetList = config.sheets
   val divideItems = config.divideItems
+  val outputDirectory = config.outputDirectory
 
   val workbook = WorkbookFactory.create(FileInputStream(config.inputFile))
 
@@ -26,10 +27,10 @@ fun main(args: Array<String>) {
     val sheet = workbook.getSheet(sheetName)
 
     if (divideItems > 1) {
-      val csvPathFormat = "./out/data/$sheetName" + "_%d.csv"
+      val csvPathFormat = outputDirectory + "/$sheetName" + "_%d.csv"
       exportSheetToCsvDivided(csvPathFormat, sheet, divideItems)
     } else {
-      val csvPath = "./out/data/$sheetName.csv"
+      val csvPath = "$outputDirectory/$sheetName.csv"
       println(csvPath)
       Files.newBufferedWriter(Paths.get(csvPath), csvEncode).use<BufferedWriter, Unit> {
         exportSheetToCsv(it, sheet)
@@ -85,7 +86,7 @@ fun exportSheetToCsvDivided(csvPathFormat:String, sheet: Sheet, divideItem: Int)
   var fileOffset = 0
   for (i in 1 .. Int.MAX_VALUE) {
     if (writer == null) {
-      var csvPath = String.format(csvPathFormat, fileOffset)
+      val csvPath = String.format(csvPathFormat, fileOffset)
       println(csvPath)
       writer = Files.newBufferedWriter(Paths.get(csvPath), csvEncode)
 
