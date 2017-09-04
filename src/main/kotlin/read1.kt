@@ -1,6 +1,7 @@
 import org.apache.poi.ss.format.CellFormat
 import org.apache.poi.ss.usermodel.*
 import java.io.BufferedWriter
+import java.io.File
 import java.io.FileInputStream
 import java.nio.charset.Charset
 import java.nio.file.Files
@@ -77,6 +78,7 @@ fun exportSheetToCsv(writer:BufferedWriter, sheet: Sheet) {
 
 
 fun exportSheetToCsvDivided(csvPathFormat:String, sheet: Sheet, divideItem: Int) {
+  var writeFile: File? = null;
   var writer: BufferedWriter? = null
 
   val headerCells = fetchHeader(sheet)
@@ -84,14 +86,17 @@ fun exportSheetToCsvDivided(csvPathFormat:String, sheet: Sheet, divideItem: Int)
 
   var len = 0
   var fileOffset = 0
+  var lenOnFile = 0
   for (i in 1 .. Int.MAX_VALUE) {
     if (writer == null) {
       val csvPath = String.format(csvPathFormat, fileOffset)
       println(csvPath)
-      writer = Files.newBufferedWriter(Paths.get(csvPath), csvEncode)
+      writeFile = File(csvPath)
+      writer = writeFile.bufferedWriter(csvEncode)
 
       writer.append(headerCells.joinToString(","))
       writer.append("\r\n")
+      lenOnFile = 0
     }
     val dataRow: Row? = sheet.getRow(i)
     dataRow?.getCell(0) ?: break
@@ -114,17 +119,21 @@ fun exportSheetToCsvDivided(csvPathFormat:String, sheet: Sheet, divideItem: Int)
       )
     }
     if (lineCells.isEmpty()) break
-    writer?.append(lineCells.joinToString(","))
-    writer?.append("\r\n")
+    writer.append(lineCells.joinToString(","))
+    writer.append("\r\n")
     len++
+    lenOnFile++
     if(len % divideItem == 0) {
-      writer?.close()
+      writer.close()
       writer = null
       fileOffset++
     }
   }
   if (writer != null) {
     writer.close()
+  }
+  if (writeFile != null && lenOnFile == 0) {
+    writeFile.delete()
   }
   println("rows=" + len)
 }
