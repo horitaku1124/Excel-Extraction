@@ -22,6 +22,11 @@ fun main(args: Array<String>) {
   val divideItems = config.divideItems
   val outputDirectory = config.outputDirectory
 
+  if (outputDirectory.isBlank()) {
+    println("outputDirectory is blank")
+    System.exit(1)
+  }
+
   val workbook = WorkbookFactory.create(FileInputStream(config.inputFile))
 
   for(sheetName in sheetList) {
