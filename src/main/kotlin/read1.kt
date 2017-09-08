@@ -29,17 +29,17 @@ fun main(args: Array<String>) {
 
     if (divideItems > 1) {
       val csvPathFormat = outputDirectory + "/$sheetName" + "_%d.csv"
-      exportSheetToCsvDivided(csvPathFormat, sheet, divideItems)
+      exportSheetToCsvDivided(csvPathFormat, sheet, divideItems, config)
     } else {
       val csvPath = "$outputDirectory/$sheetName.csv"
       println(csvPath)
       Files.newBufferedWriter(Paths.get(csvPath), csvEncode).use<BufferedWriter, Unit> {
-        exportSheetToCsv(it, sheet)
+        exportSheetToCsv(it, sheet, config)
       }
     }
   }
 }
-fun exportSheetToCsv(writer:BufferedWriter, sheet: Sheet) {
+fun exportSheetToCsv(writer:BufferedWriter, sheet: Sheet, config: Configuration) {
   val headerCells = fetchHeader(sheet)
 
   writer.append(headerCells.joinToString(","))
@@ -47,7 +47,7 @@ fun exportSheetToCsv(writer:BufferedWriter, sheet: Sheet) {
 
   println("headerLimit=" + headerCells.size)
   var len = 0
-  for (i in 1 .. Int.MAX_VALUE) {
+  for (i in 1 .. config.limit) {
     val dataRow: Row? = sheet.getRow(i)
     dataRow?.getCell(0) ?: break
 
@@ -77,7 +77,7 @@ fun exportSheetToCsv(writer:BufferedWriter, sheet: Sheet) {
 }
 
 
-fun exportSheetToCsvDivided(csvPathFormat:String, sheet: Sheet, divideItem: Int) {
+fun exportSheetToCsvDivided(csvPathFormat:String, sheet: Sheet, divideItem: Int, config: Configuration) {
   var writeFile: File? = null;
   var writer: BufferedWriter? = null
 
@@ -87,7 +87,7 @@ fun exportSheetToCsvDivided(csvPathFormat:String, sheet: Sheet, divideItem: Int)
   var len = 0
   var fileOffset = 0
   var lenOnFile = 0
-  for (i in 1 .. Int.MAX_VALUE) {
+  for (i in 1 .. config.limit) {
     if (writer == null) {
       val csvPath = String.format(csvPathFormat, fileOffset)
       println(csvPath)

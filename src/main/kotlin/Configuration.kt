@@ -3,6 +3,7 @@ class Configuration(args: Array<String>) {
   var inputFile = ""
   var outputDirectory = ""
   var sheets: List<String> = listOf()
+  var limit = Int.MAX_VALUE
 
   init {
     var i = 0
@@ -25,6 +26,10 @@ class Configuration(args: Array<String>) {
           }
           "divide" -> {
             divideItems = args[i + 1].toInt()
+            i++
+          }
+          "limit" -> {
+            limit = args[i + 1].toInt()
             i++
           }
         }
