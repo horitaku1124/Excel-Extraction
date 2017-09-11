@@ -9,6 +9,7 @@ import java.nio.file.Paths
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.regex.Pattern
 
 
 val dateFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd")
@@ -16,6 +17,7 @@ val dateTimeFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd 
 val timeFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss")
 val csvEncode: Charset = Charset.forName("Shift_JIS")
 
+val intNumPattern: Pattern = Pattern.compile("([\\d-]+)\\.(\\d+)E(\\d+)")
 fun main(args: Array<String>) {
   val config = Configuration(args)
   val sheetList = config.sheets
@@ -176,14 +178,39 @@ fun cellParseToString(cell: Cell, type: Int = cell.cellType): String {
 
         val localDateTime = LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault())
         numString = when {
-          onlyTime -> timeFormat.format(localDateTime)
-          hasTime -> dateTimeFormat.format(localDateTime)
           BuiltinFormats.FIRST_USER_DEFINED_FORMAT_INDEX <= cell.cellStyle.dataFormat -> {
             val cellFormat = CellFormat.getInstance(cell.cellStyle.dataFormatString)
             cellFormat.apply(cell).text
           }
+          cell.cellStyle.dataFormat.toInt() == 22 -> {
+            val cellFormat = CellFormat.getInstance("yyyy/mm/dd\\ h:mm")
+            cellFormat.apply(cell).text
+          }
+          onlyTime -> timeFormat.format(localDateTime)
+          hasTime -> dateTimeFormat.format(localDateTime)
           else -> dateFormat.format(localDateTime)
         }
+//        println("numString=" + numString)
+//        println(" dataFormat=" + cell.cellStyle.dataFormat)
+//        println(" dataFormatString=" + cell.cellStyle.dataFormatString)
+      } else {
+        // Number
+//        println("numString=" + numString)
+        val matcher = intNumPattern.matcher(numString)
+        if (matcher.find()) {
+          val number1 = matcher.group(1)
+          val number2 = matcher.group(2)
+          val digit = matcher.group(3).toInt()
+          if (number2.length == digit) {
+            numString = number1 + number2
+          } else if (number2.length < digit) {
+            numString = String.format("%$digit.0f", numValue)
+          } else {
+            var floatPoints = number2.length - digit
+            numString = String.format("%$digit." + floatPoints + "f", numValue)
+          }
+        }
+//        println(" numString2=" + numString)
       }
       numString
     }
