@@ -170,7 +170,11 @@ fun cellParseToString(cell: Cell, type: Int = cell.cellType): String {
     Cell.CELL_TYPE_NUMERIC -> {
       val numValue = cell.numericCellValue
       var numString = numValue.toString()
-      if (DateUtil.isCellDateFormatted(cell)) {
+
+      if(BuiltinFormats.FIRST_USER_DEFINED_FORMAT_INDEX <= cell.cellStyle.dataFormat) {
+        val cellFormat = CellFormat.getInstance(cell.cellStyle.dataFormatString)
+        numString = cellFormat.apply(cell).text
+      } else if (DateUtil.isCellDateFormatted(cell)) {
         val date = cell.dateCellValue
 
         val hasTime = (numValue - numValue.toInt().toDouble()) > 0.0
@@ -178,10 +182,6 @@ fun cellParseToString(cell: Cell, type: Int = cell.cellType): String {
 
         val localDateTime = LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault())
         numString = when {
-          BuiltinFormats.FIRST_USER_DEFINED_FORMAT_INDEX <= cell.cellStyle.dataFormat -> {
-            val cellFormat = CellFormat.getInstance(cell.cellStyle.dataFormatString)
-            cellFormat.apply(cell).text
-          }
           cell.cellStyle.dataFormat.toInt() == 22 -> {
             val cellFormat = CellFormat.getInstance("yyyy/mm/dd\\ h:mm")
             cellFormat.apply(cell).text
@@ -190,13 +190,10 @@ fun cellParseToString(cell: Cell, type: Int = cell.cellType): String {
           hasTime -> dateTimeFormat.format(localDateTime)
           else -> dateFormat.format(localDateTime)
         }
-//        println("numString=" + numString)
-//        println(" dataFormat=" + cell.cellStyle.dataFormat)
-//        println(" dataFormatString=" + cell.cellStyle.dataFormatString)
       } else {
         // Number
-//        println("numString=" + numString)
         val matcher = intNumPattern.matcher(numString)
+
         if (matcher.find()) {
           val number1 = matcher.group(1)
           val number2 = matcher.group(2)
@@ -206,11 +203,12 @@ fun cellParseToString(cell: Cell, type: Int = cell.cellType): String {
           } else if (number2.length < digit) {
             numString = String.format("%$digit.0f", numValue)
           } else {
-            var floatPoints = number2.length - digit
+            val floatPoints = number2.length - digit
             numString = String.format("%$digit." + floatPoints + "f", numValue)
           }
+        } else if(numString.endsWith(".0")) {
+          numString = numString.substring(0, numString.length - 2)
         }
-//        println(" numString2=" + numString)
       }
       numString
     }
