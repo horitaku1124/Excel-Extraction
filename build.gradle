@@ -32,7 +32,7 @@ compileTestKotlin {
 
 apply plugin: 'application'
 
-mainClassName = 'Read1Kt'
+mainClassName = 'ExtractBySheet'
 
 run {
     if (project.hasProperty('args')) {
