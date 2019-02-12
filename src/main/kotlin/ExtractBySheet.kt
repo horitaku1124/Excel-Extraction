@@ -13,12 +13,12 @@ import java.util.regex.Pattern
 
 class ExtractBySheet {
   companion object {
-    val dateFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd")
-    val dateTimeFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")
-    val timeFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss")
-    val csvEncode: Charset = Charset.forName("Shift_JIS")
+    private val dateFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd")
+    private val dateTimeFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")
+    private val timeFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss")
+    private val csvEncode: Charset = Charset.forName("Shift_JIS")
 
-    val intNumPattern: Pattern = Pattern.compile("([\\d-]+)\\.(\\d+)E(\\d+)")
+    private val intNumPattern: Pattern = Pattern.compile("([\\d-]+)\\.(\\d+)E(\\d+)")
 
     @JvmStatic
     fun main(args: Array<String>) {
@@ -50,7 +50,7 @@ class ExtractBySheet {
       }
     }
 
-    fun exportSheetToCsv(writer:BufferedWriter, sheet: Sheet, config: Configuration) {
+    private fun exportSheetToCsv(writer:BufferedWriter, sheet: Sheet, config: Configuration) {
       val headerCells = fetchHeader(sheet)
 
       writer.append(headerCells.joinToString(","))
@@ -84,11 +84,11 @@ class ExtractBySheet {
         writer.append("\r\n")
         len++
       }
-      println("rows=" + len)
+      println("rows=$len")
     }
 
 
-    fun exportSheetToCsvDivided(csvPathFormat:String, sheet: Sheet, divideItem: Int, config: Configuration) {
+    private fun exportSheetToCsvDivided(csvPathFormat:String, sheet: Sheet, divideItem: Int, config: Configuration) {
       var writeFile: File? = null;
       var writer: BufferedWriter? = null
 
@@ -146,10 +146,10 @@ class ExtractBySheet {
       if (writeFile != null && lenOnFile == 0) {
         writeFile.delete()
       }
-      println("rows=" + len)
+      println("rows=$len")
     }
 
-    fun fetchHeader(sheet: Sheet) : MutableList<String>{
+    private fun fetchHeader(sheet: Sheet) : MutableList<String>{
       val headerCells = mutableListOf<String>()
       var headerLimit = 0
       val row: Row = sheet.getRow(0) ?: return headerCells
@@ -169,7 +169,7 @@ class ExtractBySheet {
       return retHeaderCells
     }
 
-    fun cellParseToString(cell: Cell, type: Int = cell.cellType): String {
+    private fun cellParseToString(cell: Cell, type: Int = cell.cellType): String {
       return when (type) {
         Cell.CELL_TYPE_NUMERIC -> {
           val numValue = cell.numericCellValue
