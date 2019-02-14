@@ -38,7 +38,7 @@ class ExcelQuery {
         dataRow?.getCell(0) ?: break
 
         val lineCells =  mutableListOf<String>()
-        for (j in 0 .. header.size) {
+        for (j in 0 until header.size) {
           val cell: Cell? = dataRow.getCell(j)
           if (cell == null) {
             lineCells.add("")
