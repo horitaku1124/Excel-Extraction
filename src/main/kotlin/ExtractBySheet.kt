@@ -14,7 +14,6 @@ class ExtractBySheet {
   companion object {
     private val csvEncode: Charset = Charset.forName("Shift_JIS")
 
-
     @JvmStatic
     fun main(args: Array<String>) {
       val config = Configuration(args)

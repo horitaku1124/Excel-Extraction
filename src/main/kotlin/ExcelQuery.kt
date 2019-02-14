@@ -31,14 +31,36 @@ class ExcelQuery {
       val sheet = workbook.getSheet(sheetName)
       val header = ExcelUtil.fetchHeader(sheet)
 
-      println(header.joinToString(","))
+      var selectRange = mutableListOf<Int>()
+
+      if (selector == "*" ) {
+        for (i in 0 until header.size) {
+          selectRange.add(i)
+        }
+      } else {
+        selector.split(",").forEach {
+          var found = false
+          for (i in 0 until header.size) {
+            if (header[i] == it) {
+              selectRange.add(i)
+              found = true
+              break
+            }
+          }
+          if (!found) {
+            error("No elemet => ${it}")
+          }
+        }
+      }
+
+      println(selectRange.map({header[it]}).joinToString(","))
 
       for (i in 1 .. 1000) {
         val dataRow: Row? = sheet.getRow(i)
         dataRow?.getCell(0) ?: break
 
-        val lineCells =  mutableListOf<String>()
-        for (j in 0 until header.size) {
+        val lineCells = mutableListOf<String>()
+        for (j in selectRange) {
           val cell: Cell? = dataRow.getCell(j)
           if (cell == null) {
             lineCells.add("")
