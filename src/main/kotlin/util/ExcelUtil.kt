@@ -67,6 +67,14 @@ class ExcelUtil {
       }
     }
 
+    fun cellToStringSimple(cell: Cell): String {
+      return when (cell.cellType) {
+        Cell.CELL_TYPE_NUMERIC -> cellParseToString(cell)
+        Cell.CELL_TYPE_STRING -> cell.stringCellValue
+        Cell.CELL_TYPE_FORMULA -> cellParseToString(cell, cell.cachedFormulaResultType)
+        else -> ""
+      }
+    }
 
     fun fetchHeader(sheet: Sheet) : MutableList<String>{
       val headerCells = mutableListOf<String>()
