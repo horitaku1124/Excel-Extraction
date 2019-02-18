@@ -4,14 +4,20 @@ import java.io.OutputStream
 
 class HtmlWriter(var fout: OutputStream) : Writer{
   init {
-    fout.write("<html>\n".toByteArray())
+    fout.write("""<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+</head>
+<body>
+        """.toByteArray())
   }
   override fun sheetTitle(title: String) {
     fout.write("<h1>$title</h1>\n".toByteArray())
   }
 
   override fun close() {
-    fout.write("</html>\n".toByteArray())
+    fout.write("</body>\n</html>\n".toByteArray())
     fout.close()
   }
 
