@@ -10,15 +10,23 @@ class HtmlWriter(var fout: OutputStream) : Writer{
   <meta charset="UTF-8">
 </head>
 <body>
-        """.toByteArray())
+""".toByteArray())
   }
   override fun sheetTitle(title: String) {
-    fout.write("<h1>$title</h1>\n".toByteArray())
+    fout.write("\n\n<h1>$title</h1>\n".toByteArray())
   }
 
   override fun close() {
     fout.write("</body>\n</html>\n".toByteArray())
     fout.close()
+  }
+
+  fun po(c: Int, fo: OutputStream) {
+    if (c > 1) {
+      fo.write("  <td colspan='$c'></td>\n".toByteArray())
+    } else {
+      fo.write("  <td></td>\n".toByteArray())
+    }
   }
 
   override fun write(data: List<List<String>>) {
@@ -27,17 +35,39 @@ class HtmlWriter(var fout: OutputStream) : Writer{
       if (limit < it.size) {
         limit = it.size
       }
+      var right = it.size - 1
+      while(limit < right) {
+        if (it[right].isNotEmpty()) {
+          limit = right
+          break
+        }
+        right--
+      }
     }
 
     fout.write("<table>\n".toByteArray())
     data.forEach {
       fout.write(" <tr>\n".toByteArray())
+
+      var compound = 0
       for (i in 0..limit) {
         var cell = ""
         if (i < it.size) {
           cell = it[i]
         }
-        fout.write("  <td>$cell</td>\n".toByteArray())
+
+        if (cell == "") {
+          compound++
+        } else {
+          if (compound > 0) {
+            po(compound, fout)
+            compound = 0
+          }
+          fout.write("  <td>$cell</td>\n".toByteArray())
+        }
+      }
+      if (compound > 0) {
+        po(compound, fout)
       }
       fout.write(" </tr>\n".toByteArray())
     }
