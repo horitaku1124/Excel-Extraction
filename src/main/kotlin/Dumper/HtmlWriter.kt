@@ -5,7 +5,7 @@ import java.io.OutputStream
 class HtmlWriter(var fout: OutputStream) : Writer{
   init {
     fout.write("""<!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
   <meta charset="UTF-8">
 </head>
