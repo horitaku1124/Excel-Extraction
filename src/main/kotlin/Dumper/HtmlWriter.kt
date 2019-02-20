@@ -32,9 +32,6 @@ class HtmlWriter(var fout: OutputStream) : Writer{
   override fun write(data: List<List<String>>) {
     var limit = 0
     data.forEach {
-      if (limit < it.size) {
-        limit = it.size
-      }
       var right = it.size - 1
       while(limit < right) {
         if (it[right].isNotEmpty()) {
