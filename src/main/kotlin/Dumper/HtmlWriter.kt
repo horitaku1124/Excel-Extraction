@@ -28,6 +28,14 @@ class HtmlWriter(var fout: OutputStream) : Writer{
       fo.write("  <td></td>\n".toByteArray())
     }
   }
+  fun escape(str:String):String {
+    return str
+        .replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace("\n", "<br>")
+    ;
+  }
 
   override fun write(data: List<List<String>>) {
     var limit = 0
@@ -60,6 +68,7 @@ class HtmlWriter(var fout: OutputStream) : Writer{
             po(compound, fout)
             compound = 0
           }
+          cell = escape(cell)
           fout.write("  <td>$cell</td>\n".toByteArray())
         }
       }
