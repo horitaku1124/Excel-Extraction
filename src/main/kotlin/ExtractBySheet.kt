@@ -44,20 +44,20 @@ class ExtractBySheet {
       }
     }
 
-    private fun exportSheetToCsv(writer:BufferedWriter, sheet: Sheet, config: Configuration) {
-      val headerCells = ExcelUtil.fetchHeader(sheet)
+    private fun exportSheetToCsv(writer: BufferedWriter, sheet: Sheet, config: Configuration) {
+      val headerCells= ExcelUtil.fetchHeader(sheet)
 
       writer.append(headerCells.joinToString(","))
       writer.append("\r\n")
 
       println("headerLimit=" + headerCells.size)
       var len = 0
-      for (i in 1 .. config.limit) {
+      for (i in 1 until config.limit) {
         val dataRow: Row? = sheet.getRow(i)
         dataRow?.getCell(0) ?: break
 
         val lineCells =  mutableListOf<String>()
-        for (j in 0 .. headerCells.size) {
+        for (j in 0 until headerCells.size) {
           val cell: Cell? = dataRow.getCell(j)
           if (cell == null) {
             lineCells.add("")
@@ -92,7 +92,7 @@ class ExtractBySheet {
       var len = 0
       var fileOffset = 0
       var lenOnFile = 0
-      for (i in 1 .. config.limit) {
+      for (i in 1 until config.limit) {
         if (writer == null) {
           val csvPath = String.format(csvPathFormat, fileOffset)
           println(csvPath)
@@ -107,7 +107,7 @@ class ExtractBySheet {
         dataRow?.getCell(0) ?: break
 
         val lineCells =  mutableListOf<String>()
-        for (j in 0 .. headerCells.size) {
+        for (j in 0 until headerCells.size) {
           val cell: Cell? = dataRow.getCell(j)
           if (cell == null) {
             lineCells.add("")

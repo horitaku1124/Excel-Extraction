@@ -7,14 +7,14 @@ import java.util.regex.Pattern
 
 class ExcelQuery {
   companion object {
-    private val intNumPattern: Pattern = Pattern.compile("select\\s+(\\S+)\\s+from\\s+(`?)([/.a-zA-Z0-9]+)(`?)\\.?(\\S*)")
+    private val queryMatcher: Pattern = Pattern.compile("select\\s+(\\S+)\\s+from\\s+(`?)([/.a-zA-Z0-9]+)(`?)\\.?(\\S*)")
     @JvmStatic
     fun main(args: Array<String>) {
       if (args.isEmpty()) {
         error("no argument")
       }
       val query = args[0]
-      val matcher = intNumPattern.matcher(query)
+      val matcher = queryMatcher.matcher(query)
       if (!matcher.find()) {
         error("syntax error")
       }
@@ -48,7 +48,7 @@ class ExcelQuery {
             }
           }
           if (!found) {
-            error("No elemet => ${it}")
+            error("No element => ${it}")
           }
         }
       }

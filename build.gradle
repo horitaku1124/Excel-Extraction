@@ -21,6 +21,7 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     compile 'org.apache.poi:poi:3.14'
     compile 'org.apache.poi:poi-ooxml:3.14'
+    testCompile "junit:junit:4.11"
 }
 
 compileKotlin {
