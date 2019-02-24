@@ -1,5 +1,8 @@
 # Excel-Extraction
 
+
+[![CircleCI](https://circleci.com/gh/horitaku1124/Excel-Extraction.svg?style=svg)](https://circleci.com/gh/horitaku1124/Excel-Extraction)
+
 ## How to build
 ```bash
 ./gradlew build
