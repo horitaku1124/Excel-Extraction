@@ -26,7 +26,7 @@ class ExcelQueryTest {
   fun test1() {
     ExcelQuery.main(arrayOf("select 日付 from `./data/sample1.xlsx`.東京"))
 
-    val result = outContent.toString()
+    var result = outContent.toString().replace("\r\n", "\n")
     assertThat(result, Is("日付\n2017/01/01\n2017/10/11\n\n"))
   }
 }
