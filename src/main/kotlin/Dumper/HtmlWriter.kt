@@ -1,8 +1,10 @@
 package Dumper
 
+import org.apache.poi.ss.usermodel.Workbook
 import java.io.OutputStream
 
 class HtmlWriter(var fout: OutputStream) : Writer{
+
   init {
     fout.write("""<!DOCTYPE html>
 <html lang="ja">
@@ -13,7 +15,7 @@ class HtmlWriter(var fout: OutputStream) : Writer{
 """.toByteArray())
   }
   override fun sheetTitle(title: String) {
-    fout.write("\n\n<h1>$title</h1>\n".toByteArray())
+    fout.write("\n\n<h1><a name='$title'>$title</a></h1>\n".toByteArray())
   }
 
   override fun close() {
@@ -21,20 +23,33 @@ class HtmlWriter(var fout: OutputStream) : Writer{
     fout.close()
   }
 
-  fun po(c: Int, fo: OutputStream) {
+  private fun po(c: Int, fo: OutputStream) {
     if (c > 1) {
       fo.write("  <td colspan='$c'></td>\n".toByteArray())
     } else {
       fo.write("  <td></td>\n".toByteArray())
     }
   }
-  fun escape(str:String):String {
+  private fun escape(str:String):String {
     return str
         .replace("&", "&amp;")
         .replace("<", "&lt;")
         .replace(">", "&gt;")
-        .replace("\n", "<br>")
-    ;
+        .replace("\n", "<br>\n")
+  }
+  override fun tableIndex(workbook: Workbook) {
+    var buf = StringBuffer()
+    buf.append("<div>\n")
+    for (sheet in workbook.sheetIterator()) {
+      var sheetName = escape(sheet.sheetName)
+      buf.append("<p>")
+      buf.append("<a href='#$sheetName'>")
+      buf.append(sheetName)
+      buf.append("</a>")
+      buf.append("</p>\n")
+    }
+    buf.append("</div>\n")
+    fout.write(buf.toString().toByteArray())
   }
 
   override fun write(data: List<List<String>>) {
